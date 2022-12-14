@@ -1,4 +1,19 @@
-# weather!
+# rain!
+
+To run this code you need to first active the sklearn environment
+
+also, since the format of data are netCDF4, you need to install it with    pip install netCDF4
+
+Create a file on the root with the nme "data", and put the following data in
+
+The data are from the following: 
+https://www.psl.noaa.gov/data/gridded/data.cmap.html
+at the bottom left, click on the "download files" on the second row with "percipitation, mean, surface, monthly"
+Then, in the file listed, click on the file "precip.mon.mean.nc" to download.
+
+
+After the setup, you can now run the file "curves.py" in the root to see the results.
+
 
 The result of putting in coordinates
 
