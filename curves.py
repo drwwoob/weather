@@ -73,7 +73,10 @@ def deviation(area_data):
     """
     area_deviation = np.zeros(len(area_data) - 1)
     for i in range(len(area_data) - 2):
-        area_deviation[i] = area_data[i + 1] - area_data[i]
+        if area_data[i] == np.nan or area_data[i + 1] == np.nan:
+            area_deviation[i] = 0
+        else:
+            area_deviation[i] = area_data[i + 1] - area_data[i]
     
     return area_deviation
     
@@ -354,14 +357,14 @@ def predict(model, div):
     return model.score(div.reshape(size[0] * size[1], -1))
     
     
-def show_score(ds, test_ds, have_plot, with_coord):
+def show_score(ds, test_ds, have_plot, with_coord, k_start, k_end):
     """
     @method
         fit the data into the k-mean model and calculate the score for each n_cluster
     """
 
     score_list = []
-    for i in range(3, 15):
+    for i in range(k_start, k_end):
         model = k_means_apply(ds, i)
         score = predict(model, test_ds)
         score_list.append(score)
@@ -375,46 +378,55 @@ def show_score(ds, test_ds, have_plot, with_coord):
     
 def main():
     ds_precip = load_data("precip.mon.mean.nc") # 1991 - 2021
-    ds_temp = load_data("air.mon.anom.median.nc") # 1850 - 2021
+#    ds_temp = load_data("air.mon.anom.median.nc") # 1850 - 2021
+#    ds_temp = load_data("air.2x2.250.mon.anom.comb.nc") # 1880 - 2022
+#    temp_starting_time = (1991 - 1880) * 12
     train_lasting_time = (2015 - 1991) * 12 # the number of month for the training data
-    trim_temp = (1991 - 1850) * 12 + 1 #the number of month to start reading the data
 #    div = small_to_array(ds_precip, 'precip', 0, train_lasting_time, deviation)
     test_lasting_time = (2020 - 2015) * 12
             
+#
+#    for pure average per year from diviation
+    div_precip = average_all(sort_with_annual(sort_in_years(to_array(ds_precip, 'precip', 0, train_lasting_time, deviation))))
+    test_precip_div = average_all(sort_with_annual(sort_in_years(to_array(ds_precip, 'precip', 0 + train_lasting_time, test_lasting_time, deviation))))
+    score_list = show_score(div_precip, test_precip_div, True, False, 3, 15)
+#
+#
+
+
+    
+#   --- for testing purposes
+
+#    div_temp = average_all(sort_with_annual(sort_in_years(to_array(ds_temp, 'air', temp_starting_time, train_lasting_time, deviation))))
+#    test_temp_div = average_all(sort_with_annual(sort_in_years(to_array(ds_temp, 'air', temp_starting_time + train_lasting_time, test_lasting_time, deviation))))
+#    score_list = show_score(div_temp, test_temp_div, True, False, 3, 15)
+#
+#    #for pure poly score 2
+#    poly = get_curve(average_all(sort_in_years(to_array(ds_precip, 'precip', 0, train_lasting_time, deviation))), 2)
+#    poly_test = get_curve(average_all(sort_with_annual(sort_in_years(to_array(ds_precip, 'precip', 0 + train_lasting_time, test_lasting_time, deviation)))), 2)
+#    score_list = show_score(poly, poly_test, True, False, 3, 15)
     
     
+#    #for pure poly score 3
+#    poly = get_curve(average_all(sort_in_years(to_array(ds_precip, 'precip', 0, train_lasting_time, deviation))), 3)
+#    poly_test = get_curve(average_all(sort_with_annual(sort_in_years(to_array(ds_precip, 'precip', 0 + train_lasting_time, test_lasting_time, deviation)))), 3)
+#    score_list = show_score(poly, poly_test, True, False, 3, 15)
+
     #for all data raw
 #    raw = to_array(ds_precip, 'precip', 0, train_lasting_time, lambda a : a)
 #    test_precip_raw = to_array(ds_precip, 'precip', 0 + train_lasting_time, test_lasting_time, lambda a : a)
 #    print(raw.size)
 #    print(test_precip_raw.size)
     
-    #for average data raw
+#    for average data raw
 #    raw = average_all(sort_in_years(to_array(ds_precip, 'precip', 0, train_lasting_time, lambda a : a)))
 #    test_precip_raw = average_all(sort_in_years(to_array(ds_precip, 'precip', 0 + train_lasting_time, test_lasting_time, lambda a : a)))
-#    score_list = show_score(raw, test_precip_raw, True, False)
+#    score_list = show_score(raw, test_precip_raw, True, False, 3, 4)
     
     #for all data with coord
 #    coord = sort_in_coord(sort_in_years(to_array(ds_precip, 'precip', 0, train_lasting_time, lambda a : a)))
 #    test_coord = sort_in_coord(sort_in_years(to_array(ds_precip, 'precip', 0 + train_lasting_time, test_lasting_time, lambda a : a)))
-#    score_list = show_score(coord, test_coord, True, True)
-#
-    #for pure average per year from diviation
-    div = average_all(sort_with_annual(sort_in_years(to_array(ds_precip, 'precip', 0, train_lasting_time, deviation))))
-    test_precip_div = average_all(sort_with_annual(sort_in_years(to_array(ds_precip, 'precip', 0 + train_lasting_time, test_lasting_time, deviation))))
-    score_list = show_score(div, test_precip_div, True, False)
-    
-    
-    #for pure poly score
-#    poly = get_curve(average_all(sort_in_years(to_array(ds_precip, 'precip', 0, train_lasting_time, deviation))), 2)
-#    score_list = show_score(poly, test_precip_div, True, False)
-
-    plot(score_list)
-
-
-
-    
-#   --- for testing purposes
+#    score_list = show_score(coord, test_coord, True, True, 3, 10)
 
 #    print(deviation(ds_precip, 'precip'))
 #    print_data(ds_temp)
@@ -434,6 +446,8 @@ def main():
     
 #    plot(div[2][3])
 #    plot(div[4][4])
+
+    plot(score_list)
     
     
 if __name__ == "__main__":
